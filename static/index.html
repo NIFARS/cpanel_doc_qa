@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Q&A System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h2 {
+            color: #4f46e5;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 i {
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .file-info {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-info h4 {
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+
+        .answer-box {
+            background: #f0f9ff;
+            border-left: 5px solid #3b82f6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .answer-box.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .answer-box h3 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .answer-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4f46e5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-box {
+            background: #fee2e2;
+            border-left: 5px solid #ef4444;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        .success-box {
+            background: #dcfce7;
+            border-left: 5px solid #22c55e;
+            color: #166534;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .success-box.show {
+            display: block;
+        }
+
+        .file-list {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .file-time {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #4f46e5;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #4f46e5;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 15px;
+            border: 2px solid #cbd5e1;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> AI Document Q&A System</h1>
+            <p>Upload documents and ask questions in multiple languages</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('upload')">
+                <i class="fas fa-upload"></i> Upload Document
+            </button>
+            <button class="tab" onclick="switchTab('ask')">
+                <i class="fas fa-question-circle"></i> Ask Question
+            </button>
+            <button class="tab" onclick="switchTab('manage')">
+                <i class="fas fa-cog"></i> Manage Files
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Upload Tab -->
+                <div id="upload-tab" class="tab-content active">
+                    <div class="card">
+                        <h2><i class="fas fa-file-upload"></i> Upload Document</h2>
+                        
+                        <div class="form-group">
+                            <label for="userId"><i class="fas fa-user"></i> User ID</label>
+                            <input type="text" id="userId" class="form-control" placeholder="Enter your user ID" value="user_001">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileUpload"><i class="fas fa-file-pdf"></i> Select Document</label>
+                            <input type="file" id="fileUpload" class="form-control" accept=".pdf,.docx,.doc,.txt">
+                            <small style="color: #64748b; margin-top: 5px; display: block;">
+                                Supported formats: PDF, DOCX, DOC, TXT (Max 10MB)
+                            </small>
+                        </div>
+
+                        <button class="btn" onclick="uploadDocument()">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Document
+                        </button>
+
+                        <!-- Loading -->
+                        <div id="uploadLoading" class="loading">
+                            <div class="spinner"></div>
+                            <p>Uploading and processing document...</p>
+                        </div>
+
+                        <!-- Success Message -->
+                        <div id="uploadSuccess" class="success-box">
+                            <h4><i class="fas fa-check-circle"></i> Upload Successful!</h4>
+                            <div id="uploadDetails"></div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="uploadError" class="error-box">
+                            <h4><i class="fas fa-exclamation-circle"></i> Upload Failed</h4>
+                            <p id="errorMessage"></p>
+                        </div>
+
+                        <!-- File Info -->
+                        <div id="fileInfo" class="file-info">
+                            <h4><i class="fas fa-info-circle"></i> File Information</h4>
+                            <div id="fileDetails"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Tab -->
+                <div id="manage-tab" class="tab-content">
+                    <div class="card">
+                        <h2><i class="fas fa-folder-open"></i> Manage Files</h2>
+                        
+                        <div class="form-group">
+                            <label for="manageUserId"><i class="fas fa-user"></i> User ID</label>
+                            <input type="text" id="manageUserId" class="form-control" placeholder="Enter user ID" value="user_001">
+                        </div>
+
+                        <button class="btn" onclick="getUserFiles()">
+                            <i class="fas fa-sync-alt"></i> Load User Files
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="deleteUserFile()" style="margin-top: 10px;">
+                            <i class="fas fa-trash"></i> Delete All User Files
+                        </button>
+
+                        <!-- File List -->
+                        <div id="fileList" class="file-list">
+                            <p style="text-align: center; color: #64748b;">
+                                No files loaded yet. Enter User ID and click "Load User Files".
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Ask Tab -->
+                <div id="ask-tab" class="tab-content">
+                    <div class="card">
+                        <h2><i class="fas fa-question"></i> Ask Question</h2>
+                        
+                        <div class="form-group">
+                            <label for="askUserId"><i class="fas fa-user"></i> User ID</label>
+                            <input type="text" id="askUserId" class="form-control" placeholder="Enter user ID" value="user_001">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileId"><i class="fas fa-file-alt"></i> File ID (Optional)</label>
+                            <input type="text" id="fileId" class="form-control" placeholder="Leave empty to use latest file">
+                            <small style="color: #64748b; margin-top: 5px; display: block;">
+                                Leave empty to automatically use your latest uploaded file
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="question"><i class="fas fa-comment-alt"></i> Your Question</label>
+                            <textarea id="question" class="form-control" rows="4" placeholder="Type your question here..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-language"></i> Language</label>
+                            <div class="language-selector">
+                                <button class="lang-btn active" onclick="selectLanguage('en')">English</button>
+                                <button class="lang-btn" onclick="selectLanguage('ta')">தமிழ்</button>
+                                <button class="lang-btn" onclick="selectLanguage('si')">සිංහල</button>
+                            </div>
+                        </div>
+
+                        <button class="btn" onclick="askQuestion()">
+                            <i class="fas fa-search"></i> Ask Question
+                        </button>
+
+                        <!-- Loading -->
+                        <div id="askLoading" class="loading">
+                            <div class="spinner"></div>
+                            <p>Searching for answer in document...</p>
+                        </div>
+
+                        <!-- Answer Box -->
+                        <div id="answerBox" class="answer-box">
+                            <h3><i class="fas fa-lightbulb"></i> Answer</h3>
+                            <div class="answer-text" id="answerText"></div>
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1;">
+                                <small style="color: #64748b;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    File: <span id="answerFile"></span> | 
+                                    Language: <span id="answerLang"></span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="askError" class="error-box">
+                            <h4><i class="fas fa-exclamation-circle"></i> Error</h4>
+                            <p id="askErrorMessage"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="card">
+                    <h2><i class="fas fa-heartbeat"></i> System Status</h2>
+                    <div id="systemStatus">
+                        <p><i class="fas fa-sync fa-spin"></i> Checking system status...</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="checkHealth()" style="margin-top: 15px;">
+                        <i class="fas fa-redo"></i> Refresh Status
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>AI Document Q&A System v2.0 | Powered by FastAPI & Transformers</p>
+            <p style="margin-top: 5px; font-size: 0.8rem;">
+                Files auto-delete after 24 hours | One file per user
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Change this to your backend URL
+        const API_BASE_URL = 'http://localhost:8000'; // For local testing
+        // For cPanel, use: const API_BASE_URL = 'https://yourdomain.com';
+
+        let currentFileId = '';
+        let selectedLanguage = 'en';
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Language selection
+        function selectLanguage(lang) {
+            selectedLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Upload document
+        async function uploadDocument() {
+            const userId = document.getElementById('userId').value.trim();
+            const fileInput = document.getElementById('fileUpload');
+            
+            if (!userId) {
+                showError('Please enter a User ID');
+                return;
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showError('Please select a file to upload');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('user_id', userId);
+
+            // Show loading
+            showLoading('uploadLoading', true);
+            hideElement('uploadSuccess');
+            hideElement('uploadError');
+            hideElement('fileInfo');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success
+                    currentFileId = result.file_id;
+                    
+                    // Show success message
+                    document.getElementById('uploadDetails').innerHTML = `
+                        <p><strong>File:</strong> ${result.filename}</p>
+                        <p><strong>File ID:</strong> ${result.file_id}</p>
+                        <p><strong>Size:</strong> ${result.size} characters</p>
+                        <p><strong>Preview:</strong> ${result.preview}</p>
+                    `;
+                    showElement('uploadSuccess');
+                    
+                    // Show file info
+                    document.getElementById('fileDetails').innerHTML = `
+                        <p><strong>Status:</strong> Uploaded successfully</p>
+                        <p><strong>Note:</strong> ${result.note}</p>
+                        <button class="btn btn-secondary" onclick="copyFileId('${result.file_id}')" style="margin-top: 10px;">
+                            <i class="fas fa-copy"></i> Copy File ID
+                        </button>
+                    `;
+                    showElement('fileInfo');
+                    
+                    // Auto-switch to ask tab
+                    setTimeout(() => {
+                        document.getElementById('fileId').value = result.file_id;
+                        switchTab('ask');
+                    }, 2000);
+                } else {
+                    // Error
+                    showAskError(result.error || result.detail || 'Upload failed');
+                }
+            } catch (error) {
+                showAskError(`Network error: ${error.message}`);
+            } finally {
+                showLoading('uploadLoading', false);
+            }
+        }
+
+        // Ask question
+        async function askQuestion() {
+            const userId = document.getElementById('askUserId').value.trim();
+            const question = document.getElementById('question').value.trim();
+            let fileId = document.getElementById('fileId').value.trim();
+
+            if (!userId) {
+                showAskError('Please enter a User ID');
+                return;
+            }
+
+            if (!question) {
+                showAskError('Please enter a question');
+                return;
+            }
+
+            // If fileId is empty, try to get from currentFileId
+            if (!fileId && currentFileId) {
+                fileId = currentFileId;
+                document.getElementById('fileId').value = fileId;
+            }
+
+            if (!fileId) {
+                showAskError('Please upload a document first or enter a File ID');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file_id', fileId);
+            formData.append('question', question);
+            formData.append('user_id', userId);
+
+            // Show loading
+            showLoading('askLoading', true);
+            hideElement('answerBox');
+            hideElement('askError');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Show answer
+                    document.getElementById('answerText').textContent = result.answer;
+                    document.getElementById('answerFile').textContent = result.filename || 'Unknown';
+                    document.getElementById('answerLang').textContent = result.question_lang || 'en';
+                    showElement('answerBox');
+                    
+                    // Auto-scroll to answer
+                    document.getElementById('answerBox').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showAskError(result.error || result.detail || 'Failed to get answer');
+                }
+            } catch (error) {
+                showAskError(`Network error: ${error.message}`);
+            } finally {
+                showLoading('askLoading', false);
+            }
+        }
+
+        // Get user files
+        async function getUserFiles() {
+            const userId = document.getElementById('manageUserId').value.trim();
+            
+            if (!userId) {
+                alert('Please enter a User ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/user/${userId}`);
+                const result = await response.json();
+
+                const fileList = document.getElementById('fileList');
+                
+                if (response.ok && result.file) {
+                    fileList.innerHTML = `
+                        <div class="file-item">
+                            <div>
+                                <div class="file-name">${result.file.filename}</div>
+                                <div class="file-time">
+                                    Uploaded ${result.file.uploaded_ago} hours ago
+                                </div>
+                            </div>
+                            <div>
+                                <button class="delete-btn" onclick="deleteFile('${result.file.file_id}', '${userId}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">
+                            <p><strong>File ID:</strong> ${result.file.file_id}</p>
+                            <p><strong>Size:</strong> ${result.file.size} characters</p>
+                            <p><strong>Chunks:</strong> ${result.file.chunks}</p>
+                            <p><strong>Hours remaining:</strong> ${result.file.hours_remaining.toFixed(1)}</p>
+                        </div>
+                    `;
+                } else {
+                    fileList.innerHTML = `
+                        <p style="text-align: center; color: #64748b; padding: 20px;">
+                            <i class="fas fa-folder-open fa-2x" style="margin-bottom: 10px; display: block;"></i>
+                            ${result.message || 'No files found for this user'}
+                        </p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('fileList').innerHTML = `
+                    <p style="text-align: center; color: #ef4444;">
+                        Error loading files: ${error.message}
+                    </p>
+                `;
+            }
+        }
+
+        // Delete user file
+        async function deleteUserFile() {
+            const userId = document.getElementById('manageUserId').value.trim();
+            
+            if (!userId || !confirm(`Delete all files for user ${userId}?`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('user_id', userId);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete`, {
+                    method: 'DELETE',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || 'Files deleted successfully');
+                    getUserFiles(); // Refresh list
+                } else {
+                    alert(result.error || result.detail || 'Delete failed');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Delete specific file
+        async function deleteFile(fileId, userId) {
+            if (!confirm('Delete this file?')) return;
+
+            const formData = new FormData();
+            formData.append('file_id', fileId);
+            formData.append('user_id', userId);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete`, {
+                    method: 'DELETE',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    getUserFiles(); // Refresh list
+                } else {
+                    alert(result.error || result.detail || 'Delete failed');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Check system health
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const result = await response.json();
+
+                const statusDiv = document.getElementById('systemStatus');
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="padding: 10px; background: #dcfce7; border-radius: 8px;">
+                                <strong>Status:</strong> ${result.status}
+                            </div>
+                            <div style="padding: 10px; background: #dbeafe; border-radius: 8px;">
+                                <strong>Documents:</strong> ${result.documents}
+                            </div>
+                            <div style="padding: 10px; background: #f0f9ff; border-radius: 8px;">
+                                <strong>Users:</strong> ${result.users}
+                            </div>
+                            <div style="padding: 10px; background: #fef3c7; border-radius: 8px;">
+                                <strong>AI Models:</strong> ${result.ai_models?.sentence_transformers ? '✅' : '❌'}
+                            </div>
+                        </div>
+                        <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">
+                            <i class="fas fa-clock"></i> Last checked: ${new Date().toLocaleTimeString()}
+                        </p>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <p style="color: #ef4444;">
+                            <i class="fas fa-exclamation-triangle"></i> System error
+                        </p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML = `
+                    <p style="color: #ef4444;">
+                        <i class="fas fa-unlink"></i> Cannot connect to server
+                    </p>
+                `;
+            }
+        }
+
+        // Utility functions
+        function showLoading(elementId, show) {
+            const element = document.getElementById(elementId);
+            if (show) {
+                element.classList.add('show');
+            } else {
+                element.classList.remove('show');
+            }
+        }
+
+        function showElement(elementId) {
+            if (typeof elementId === 'string') {
+                document.getElementById(elementId).classList.add('show');
+            } else {
+                elementId.classList.add('show');
+            }
+        }
+
+        function hideElement(elementId) {
+            if (typeof elementId === 'string') {
+                document.getElementById(elementId).classList.remove('show');
+            } else {
+                elementId.classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            showElement('uploadError');
+        }
+
+        function showAskError(message) {
+            document.getElementById('askErrorMessage').textContent = message;
+            showElement('askError');
+        }
+
+        function copyFileId(fileId) {
+            navigator.clipboard.writeText(fileId).then(() => {
+                alert('File ID copied to clipboard!');
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check system status on load
+            checkHealth();
+            
+            // Auto-check every 30 seconds
+            setInterval(checkHealth, 30000);
+            
+            // Demo questions
+            const demoQuestions = [
+                "What is Sigiriya?",
+                "Who built Sigiriya?",
+                "When was Sigiriya built?",
+                "Why is it called Lion Rock?",
+                "What are the main features?"
+            ];
+            
+            // Add demo questions to dropdown
+            const questionInput = document.getElementById('question');
+            questionInput.placeholder = "Type your question or try: " + demoQuestions.join(", ");
+        });
+    </script>
+</body>
+</html>
