@@ -1,5 +1,5 @@
 [phases.setup]
-pkgs = ["python3", "python3Packages.pip"]
+pkgs = ["python3", "python3Packages.pip", "gcc"]
 
 [phases.install]
 cmds = [
