@@ -344,8 +344,8 @@ async def upload_document(
         # Process text
         text = clean_text(text)
         chunks = split_into_chunks(text, 300)
-      #  embeddings = create_embeddings(chunks)
-        embeddings = None
+        embeddings = create_embeddings(chunks)
+       
         # Store in database
         documents_db[file_id] = {
             'text': text,
@@ -391,14 +391,10 @@ async def ask_question(
         if file_id not in documents_db:
             raise HTTPException(404, "Document not found")
         
-       # doc = documents_db[file_id]
+        doc = documents_db[file_id]
 
 
-       # /ask endpoint
-doc = documents_db[file_id]
 
-if doc['embeddings'] is None:
-    doc['embeddings'] = create_embeddings(doc['chunks'])
 
 
         
@@ -445,16 +441,6 @@ if doc['embeddings'] is None:
     except Exception as e:
         raise HTTPException(500, f"Error: {str(e)}")
 
-# new add
-@app.on_event("startup")
-async def startup():
-    asyncio.create_task(auto_cleanup())
-    if SENTENCE_TRANSFORMER_AVAILABLE:
-        MODELS["embedding"] = SentenceTransformer("all-MiniLM-L6-v2")
-    if TRANSFORMERS_AVAILABLE:
-        MODELS["qa"] = pipeline("question-answering", model="distilbert-base-cased-distilled-squad", device=-1)
-
-# end new add
 
 
 
