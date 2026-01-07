@@ -1,7 +1,0 @@
-# cPanel Python App Configuration
-PassengerAppRoot /home/YOUR_USERNAME/public_html
-PassengerBaseURI /
-PassengerPython /home/YOUR_USERNAME/virtualenv/venv/3.9/bin/python
-PassengerStartupFile passenger_wsgi.py
-PassengerAppType wsgi
-PassengerAppLogFile /home/YOUR_USERNAME/passenger.log
