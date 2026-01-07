@@ -1,11 +1,15 @@
 [phases.setup]
-pkgs = ["python3", "python3Packages.pip", "gcc"]
+nixPkgs = [
+  "python311",
+  "python311Packages.pip",
+  "gcc"
+]
 
 [phases.install]
 cmds = [
   "python -m pip install --upgrade pip",
-  "python -m pip install -r requirements.txt"
+  "pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "python -m uvicorn main:app --host=0.0.0.0 --port=$PORT"
+cmd = "uvicorn main:app --host=0.0.0.0 --port=$PORT"
