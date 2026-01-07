@@ -1,9 +1,9 @@
-# nixpacks.toml
+# nixpacks.toml - CORRECTED VERSION
 [phases.setup]
-cmds = ["pip install --upgrade pip"]
+cmds = ["python -m pip install --upgrade pip"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = ["python -m pip install -r requirements.txt"]
 
 [start]
 cmd = "python -m uvicorn main:app --host 0.0.0.0 --port $PORT"
