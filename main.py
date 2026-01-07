@@ -519,7 +519,7 @@ async def delete_document(
 async def health_check():
     """System health"""
     return JSONResponse({
-        'status': 'healthy',
+        'status': 'health',
         'documents': len(documents_db),
         'users': len(user_to_file),
         'ai_models': {
