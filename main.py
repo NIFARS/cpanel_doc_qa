@@ -33,13 +33,13 @@ async def serve_frontend():
     return FileResponse("static/index.html")
 
 # ==================== AI Models Import ====================
+# main.py-ல் இந்த lines check பண்ணுங்கள்
 try:
-    from sentence_transformers import SentenceTransformer, util # type: ignore
+    from sentence_transformers import SentenceTransformer, util
     SENTENCE_TRANSFORMER_AVAILABLE = True
-    print("✅ Sentence Transformer loaded")
 except ImportError:
     SENTENCE_TRANSFORMER_AVAILABLE = False
-    print("⚠️ Sentence Transformer not available")
+    print("⚠️ AI models not available - using keyword search")
 
 try:
     from transformers import pipeline # type: ignore
