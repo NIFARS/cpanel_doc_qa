@@ -515,6 +515,26 @@ async def delete_document(
     except Exception as e:
         raise HTTPException(500, f"Delete failed: {str(e)}")
 
+
+@app.get("/api")
+async def api_root():
+    return {
+        "message": "API is working",
+        "endpoints": [
+            "/upload",
+            "/ask",
+            "/user/{user_id}",
+            "/delete",
+            "/health"
+        ]
+    }
+
+
+
+
+
+
+
 @app.get("/health")
 async def health_check():
     """System health"""
