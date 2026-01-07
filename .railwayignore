@@ -1,0 +1,5 @@
+# .railwayignore
+python
+Dockerfile
+.dockerignore
+docker-compose.yml
