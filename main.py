@@ -344,8 +344,8 @@ async def upload_document(
         # Process text
         text = clean_text(text)
         chunks = split_into_chunks(text, 300)
-        embeddings = create_embeddings(chunks)
-        
+      #  embeddings = create_embeddings(chunks)
+        embeddings = None
         # Store in database
         documents_db[file_id] = {
             'text': text,
@@ -391,7 +391,16 @@ async def ask_question(
         if file_id not in documents_db:
             raise HTTPException(404, "Document not found")
         
-        doc = documents_db[file_id]
+       # doc = documents_db[file_id]
+
+
+       # /ask endpoint
+doc = documents_db[file_id]
+
+if doc['embeddings'] is None:
+    doc['embeddings'] = create_embeddings(doc['chunks'])
+
+
         
         # Verify user (optional)
         if user_id and doc['user_id'] != user_id:
@@ -408,6 +417,8 @@ async def ask_question(
             doc['chunks'], 
             doc['text']
         )
+
+
         
         # Clean answer
         answer = answer.strip()
@@ -433,6 +444,26 @@ async def ask_question(
         raise
     except Exception as e:
         raise HTTPException(500, f"Error: {str(e)}")
+
+# new add
+@app.on_event("startup")
+async def startup():
+    asyncio.create_task(auto_cleanup())
+    if SENTENCE_TRANSFORMER_AVAILABLE:
+        MODELS["embedding"] = SentenceTransformer("all-MiniLM-L6-v2")
+    if TRANSFORMERS_AVAILABLE:
+        MODELS["qa"] = pipeline("question-answering", model="distilbert-base-cased-distilled-squad", device=-1)
+
+# end new add
+
+
+
+
+
+
+
+
+
 
 @app.get("/user/{user_id}")
 async def get_user_document(user_id: str):
